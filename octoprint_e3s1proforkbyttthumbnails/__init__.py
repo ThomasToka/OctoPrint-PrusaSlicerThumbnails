@@ -25,7 +25,7 @@ except ImportError:
 	from urllib.parse import quote, unquote
 
 
-class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
+class E3S1PROFORKBYTTThumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 								  octoprint.plugin.AssetPlugin,
 								  octoprint.plugin.TemplatePlugin,
 								  octoprint.plugin.EventHandlerPlugin,
@@ -57,13 +57,13 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 	# ~~ AssetPlugin mixin
 
 	def get_assets(self):
-		return {'js': ["js/prusaslicerthumbnails.js"], 'css': ["css/prusaslicerthumbnails.css"]}
+		return {'js': ["js/e3s1proforkbyttthumbnails.js"], 'css': ["css/e3s1proforkbyttthumbnails.css"]}
 
 	# ~~ TemplatePlugin mixin
 
 	def get_template_configs(self):
 		return [
-			{'type': "settings", 'custom_bindings': False, 'template': "prusaslicerthumbnails_settings.jinja2"},
+			{'type': "settings", 'custom_bindings': False, 'template': "e3s1proforkbyttthumbnails_settings.jinja2"},
 		]
 
 	def _extract_thumbnail(self, gcode_filename, thumbnail_filename):
@@ -72,6 +72,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 		regex_weedo = re.compile('W221[\r\n](.*)[\r\n]W222', re.DOTALL)
 		regex_luban = re.compile(';thumbnail: data:image/png;base64,(.*)[\r\n]', re.DOTALL)
 		regex_qidi = re.compile('M4010.*\'(.*)\'', re.DOTALL)
+		regex_e3s1proforkbytt = r"(?:^; (?:thumbnail(?:_JPG)*|jpg) begin .*?$)([\s\S]*?)(?:\n|\r\n?)(?:^; (?:thumbnail(?:_JPG)*|jpg) end)"
 		regex_creality = r"(?:^; jpg begin .*)(?:\n|\r\n?)((?:.+(?:\n|\r\n?))+?)(?:^; jpg end)"
 		regex_buddy = r"(?:^; thumbnail(?:_QOI)* begin \d+[x ]\d+ \d+)(?:\n|\r\n?)((?:.+(?:\n|\r\n?))+?)(?:^; thumbnail(?:_QOI)* end)"
 		lineNum = 0
@@ -82,6 +83,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 		use_flashprint = False
 		use_creality = False
 		use_buddy = False
+		use_e3s1proforkbytt = False
 		with open(gcode_filename, "rb") as gcode_file:
 			for line in gcode_file:
 				lineNum += 1
@@ -124,6 +126,11 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 					self._logger.debug("Found flashprint thumbnail.")
 					matches = [thumbbytes]
 					use_flashprint = True
+		if len(matches) == 0:  # E3S1PROFORKBYTT fallback
+			matches = re.findall(regex_e3s1proforkbytt, test_str, re.MULTILINE)
+			if len(matches) > 0:
+				self._logger.debug("Found E3S1PROFORKBYTT thumbnail.")
+				use_e3s1proforkbytt = True					
 		if len(matches) == 0:  # Creality Neo fallback
 			matches = re.findall(regex_creality, test_str, re.MULTILINE)
 			if len(matches) > 0:
@@ -150,6 +157,8 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 					png_file.write(self._extract_mks_thumbnail(matches))
 				elif use_weedo:
 					png_file.write(self._extract_weedo_thumbnail(matches))
+				elif use_e3s1proforkbytt:
+					png_file.write(self._extract_e3s1proforkbytt_thumbnail(matches[choosen]))
 				elif use_creality:
 					png_file.write(self._extract_creality_thumbnail(matches[choosen]))
 				elif use_qidi:
@@ -222,6 +231,13 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 		image = Image.frombytes('RGB', encoded_image_dimensions, encoded_image, 'raw', 'BGR;16', 0, 1)
 		return self._imageToPng(image)
 
+    # Extracts a thumbnail from hex binary data usd by Qidi slicer
+	def _extract_e3s1proforkbytt_thumbnail(self, match):
+		encoded_jpg = base64.b64decode(match.replace("; ", "").encode())
+		with io.BytesIO(encoded_jpg) as jpg_bytes:
+			image = Image.open(jpg_bytes)
+			return self._imageToPng(image)
+
 	# Extracts a thumbnail from hex binary data usd by Qidi slicer
 	def _extract_creality_thumbnail(self, match):
 		encoded_jpg = base64.b64decode(match.replace("; ", "").encode())
@@ -285,7 +301,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 				gcode_filename = self._file_manager.path_on_disk("local", payload["path"])
 				self._extract_thumbnail(gcode_filename, thumbnail_filename)
 				if os.path.exists(thumbnail_filename):
-					thumbnail_url = "plugin/prusaslicerthumbnails/thumbnail/{}?{:%Y%m%d%H%M%S}".format(thumbnail_path.replace(thumbnail_name, quote(thumbnail_name)), datetime.datetime.now())
+					thumbnail_url = "plugin/e3s1proforkbyttthumbnails/thumbnail/{}?{:%Y%m%d%H%M%S}".format(thumbnail_path.replace(thumbnail_name, quote(thumbnail_name)), datetime.datetime.now())
 					self._file_manager.set_additional_metadata("local", payload["path"], "thumbnail", thumbnail_url.replace("//", "/"), overwrite=True)
 					self._file_manager.set_additional_metadata("local", payload["path"], "thumbnail_src", self._identifier, overwrite=True)
 
@@ -302,7 +318,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 				results["no_thumbnail"].append(gcode_file["path"])
 				self.on_event("FileAdded", {'path': gcode_file["path"], 'storage': "local", 'type': ["gcode"],
 											'name': gcode_file["name"]})
-			elif "prusaslicerthumbnails" in gcode_file.get("thumbnail") and not gcode_file.get("thumbnail_src"):
+			elif "e3s1proforkbyttthumbnails" in gcode_file.get("thumbnail") and not gcode_file.get("thumbnail_src"):
 				self._logger.debug("No Thumbnail source for %s, adding" % gcode_file["path"])
 				results["no_thumbnail_src"].append(gcode_file["path"])
 				self._file_manager.set_additional_metadata("local", gcode_file["path"], "thumbnail_src",
@@ -318,7 +334,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 
 	def on_api_command(self, command, data):
 		import flask
-		if not Permissions.PLUGIN_PRUSASLICERTHUMBNAILS_SCAN.can():
+		if not Permissions.PLUGIN_E3S1PROFORKBYTTTHUMBNAILS_SCAN.can():
 			return flask.make_response("Insufficient rights", 403)
 
 		if command == "crawl_files":
@@ -377,7 +393,7 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 	# ~~ Softwareupdate hook
 
 	def get_update_information(self):
-		return {'prusaslicerthumbnails': {'displayName': "Slicer Thumbnails", 'displayVersion': self._plugin_version,
+		return {'e3s1proforkbyttthumbnails': {'displayName': "Slicer Thumbnails", 'displayVersion': self._plugin_version,
 										  'type': "github_release", 'user': "jneilliii",
 										  'repo': "OctoPrint-PrusaSlicerThumbnails", 'current': self._plugin_version,
 										  'stable_branch': {'name': "Stable", 'branch': "master",
@@ -386,13 +402,13 @@ class PrusaslicerthumbnailsPlugin(octoprint.plugin.SettingsPlugin,
 			], 'pip': "https://github.com/jneilliii/OctoPrint-PrusaSlicerThumbnails/archive/{target_version}.zip"}}
 
 
-__plugin_name__ = "Slicer Thumbnails"
+__plugin_name__ = "E3S1PROFORKBYTTT Thumbnails"
 __plugin_pythoncompat__ = ">=2.7,<4"  # python 2 and 3
 
 
 def __plugin_load__():
 	global __plugin_implementation__
-	__plugin_implementation__ = PrusaslicerthumbnailsPlugin()
+	__plugin_implementation__ = E3S1PROFORKBYTTThumbnailsPlugin()
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
