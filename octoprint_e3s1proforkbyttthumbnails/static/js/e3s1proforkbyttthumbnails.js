@@ -18,7 +18,7 @@ $(function() {
 		self.file_details = ko.observable();
 		self.crawling_files = ko.observable(false);
 		self.crawl_results = ko.observableArray([]);
-
+		self.api_key = ko.observable("");
 		self.filesViewModel.e3s1proforkbyttthumbnails_open_thumbnail = function(data) {
 			if(data.thumbnail_src === "e3s1proforkbyttthumbnails"){
 				var thumbnail_title = data.name.replace(/\.(?:gco(?:de)?|tft)$/,'');
@@ -29,6 +29,7 @@ $(function() {
 			}
 		};
 
+
 		self.DEFAULT_THUMBNAIL_SCALE = "100%";
 		self.filesViewModel.thumbnailScaleValue = ko.observable(self.DEFAULT_THUMBNAIL_SCALE);
 
@@ -37,6 +38,17 @@ $(function() {
 
         self.DEFAULT_THUMBNAIL_POSITION = false;
 		self.filesViewModel.thumbnailPositionLeft = ko.observable(self.DEFAULT_THUMBNAIL_POSITION);
+
+		self.getThumbnailUrl = function() {
+			// Check if the thumbnail URL contains ".png?" and replace it with ".jpg?"
+			var url = self.thumbnail_url();
+			if (url.toLowerCase().includes(".png?")) {
+				return url.replace(/\.png\?/i, ".jpg?");
+			} else {
+				// If it doesn't contain ".png?", return it as is
+				return url;
+			}
+		};
 
 		self.crawl_files = function(){
 			self.crawling_files(true);
@@ -158,9 +170,16 @@ $(function() {
 										$('#e3s1proforkbytt_state_thumbnail').attr('src', file_data.thumbnail);
 									} else {
 									    $('#state > div > hr:first').after('<img id="e3s1proforkbytt_state_thumbnail" class="pull-left" src="'+file_data.thumbnail+'" width="' + self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail_scale_value() + '%"/>');
-                                        if(self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail_scale_value() == 100) {
-                                            $('#e3s1proforkbytt_state_thumbnail').removeClass('pull-left').after('<hr>');
-                                        }
+										var $stateThumbnail = $('#e3s1proforkbytt_state_thumbnail');
+										var $existingHr = $stateThumbnail.next('hr');
+										if (self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail_scale_value() == 100) {
+											if ($existingHr.length === 0) {
+												$stateThumbnail.removeClass('pull-left').after('<hr>');
+											}
+										} else {
+											$existingHr.remove();
+											$stateThumbnail.addClass('pull-left');
+										}
                                         if(self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.relocate_progress()) {
                                             $('#state > div > div.progress.progress-text-centered').css({'margin-bottom': 'inherit'}).insertBefore('#e3s1proforkbytt_state_thumbnail').after('<hr>');
                                         }
