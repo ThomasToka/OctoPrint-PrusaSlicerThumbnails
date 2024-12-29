@@ -174,7 +174,7 @@ $(function() {
 										var $existingHr = $stateThumbnail.next('hr');
 										if (self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail_scale_value() == 100) {
 											if ($existingHr.length === 0) {
-												$stateThumbnail.removeClass('pull-left').after('<hr>');
+												$stateThumbnail.removeClass('pull-left').after('<hr id="e3s1proforkbytt_state_hr">');
 											}
 										} else {
 											$existingHr.remove();
@@ -186,6 +186,9 @@ $(function() {
 									}
 								} else {
 									$('#e3s1proforkbytt_state_thumbnail').remove();
+									if(self.settingsViewModel.settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail_scale_value() == 100) {
+										$('#e3s1proforkbytt_state_hr').remove();
+									}									
 								}
 							}
 						})
