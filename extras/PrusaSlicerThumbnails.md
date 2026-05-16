@@ -85,14 +85,9 @@ compatibility:
   
   # Compatible Python version
   #
-  # Plugins should aim for compatibility for Python 2 and 3 for now, in which case the value should be ">=2.7,<4".
-  #
-  # Plugins that only wish to support Python 3 should set it to ">=3,<4". 
-  #
-  # If your plugin only supports Python 2 (worst case, not recommended for newly developed plugins since Python 2
-  # is EOL), leave at ">=2.7,<3"
+  # This plugin requires Python 3.7 or newer.
   
-  python: ">=2.7,<3"
+  python: ">=3.7,<4"
 
 ---
 
