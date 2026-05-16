@@ -11,13 +11,6 @@
 			<span class="add-on">%</span>
 		</span>
 	</div>
-	<div class="control-group">
-	<label class="control-label"><h4>{{ _('API Key:') }}</h4></label>
-	<div class="controls">
-	<input type="text" class="input-block-level" data-bind="value: settings.plugins.e3s1proforkbyttthumbnails.api_key">
-	<span class="help-inline">Enter your GLOBAL API KEY found under Settings -> API.</span>
-	</div>
-    </div>	
 	<div class="controls">
 		<label class="checkbox">
 		<input type="checkbox" data-bind="enable:settings.plugins.e3s1proforkbyttthumbnails.state_panel_thumbnail() == true, checked: settings.plugins.e3s1proforkbyttthumbnails.relocate_progress"> Relocate progress bar above thumbnail (requires browser refresh).
@@ -76,6 +69,14 @@
 		<label class="checkbox">
 		<input type="checkbox" data-bind="checked: settings.plugins.e3s1proforkbyttthumbnails.sync_on_refresh"> Rescan all files when pressing refresh in file list.
 		</label>
+	</div>
+	<div class="controls">
+		<label>Wait timeout before PrintStarted fallback (seconds)</label>
+		<span class="input-append">
+			<input type="number" min="1" max="120" step="1" class="input-mini text-right" data-bind="value: settings.plugins.e3s1proforkbyttthumbnails.print_wait_timeout">
+			<span class="add-on">s</span>
+		</span>
+		<span class="help-inline">Increase this if uploads are large or storage is slow; decrease it to start prints sooner when preparation is usually fast.</span>
 	</div>
 	<div class="controls">
 		<label class="checkbox">

@@ -19,7 +19,6 @@ $(function() {
 		self.file_details = ko.observable();
 		self.crawling_files = ko.observable(false);
 		self.crawl_results = ko.observableArray([]);
-		self.api_key = ko.observable("");
 		self.filesViewModel.e3s1proforkbyttthumbnails_open_thumbnail = function(data) {
 			if(data.thumbnail_src === "e3s1proforkbyttthumbnails"){
 				var thumbnail_title = data.name.replace(/\.(?:gco(?:de)?|tft)$/,'');
