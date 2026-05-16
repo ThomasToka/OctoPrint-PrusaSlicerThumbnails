@@ -2,13 +2,17 @@
 from __future__ import absolute_import
 
 from .plugin import E3S1PROFORKBYTTThumbnailsPlugin
-from .plugin_config import PLUGIN_NAME, PLUGIN_PYTHON_COMPAT
+from .plugin_config import PLUGIN_NAME, PLUGIN_VERSION
 
 __plugin_name__ = PLUGIN_NAME
-__plugin_pythoncompat__ = PLUGIN_PYTHON_COMPAT
+__plugin_version__ = PLUGIN_VERSION
+__plugin_pythoncompat__ = ">=3.7,<4"
 
 
 def __plugin_load__():
+    global __plugin_pythoncompat__
+    __plugin_pythoncompat__ = ">=3.7,<4"
+
     global __plugin_implementation__
     __plugin_implementation__ = E3S1PROFORKBYTTThumbnailsPlugin()
 
